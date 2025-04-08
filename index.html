@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <title>📚Book Tiermaker📚</title>
+    <style>
+        :root{
+            --color-s:#7fff7f;
+            --color-a:#bfff7f;
+            --color-b:#fdff7f;
+            --color-c:#ffdf80;
+            --color-d:#ffc07f;
+            --color-e:#ff7f80;
+        }
+        *,
+        *::before,
+        *::after{
+            box-sizing:border-box;
+        }
+        button{
+            background: transparent;
+            border: 0;
+            color: white;
+            cursor: pointer;
+        }
+        body{
+            background: linear-gradient(to left top,#03000c,#110011);
+            background-attachment: fixed;
+            color:white;
+        }
+        .logo{
+            width: 100px;
+        }
+        *{
+            font-family: "Open Sans", sans-serif,'Courier New', Courier, monospace;
+        }
+        .label{
+            cursor:pointer;
+            background: var(--level,#a88bff);
+            color: #03000c;
+            font-weight: bold;
+            height: 120px;
+            width: 80px;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            vertical-align: center;
+            border: 1px;
+            border-color: gray;
+        }
+        .row{
+            display: flex;
+            flex-direction: row;
+            border-bottom: 1px solid #111;
+        }
+
+        #selector-items{
+            border: 1px solid #666;
+            padding: 20px;
+            width: 100%;
+            min-height: 140px;
+            margin-bottom: 100px;
+            border-radius: 10px;
+            display: flex;
+            gap : 5px;
+            flex-wrap: wrap;
+        }
+        #top-header{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-block: 8px;
+
+            & img {
+                width: 80px;
+                height: 120px;
+            }
+        }
+        .item-image{
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            cursor: grab;
+        }
+    </style>
+    <script type="module">
+
+        const $ = el => document.querySelector(el);
+        const $$ = els => document.querySelectorAll(el);
+
+        const imageInput = $('#image-input');
+        const itemsSection = $('#selector-items');
+
+        imageInput.addEventListener('change',(event)=>{
+            const [file]=event.target.files;
+            if(file){
+                const reader = new FileReader();
+                reader.onload=(eventReader)=>{
+                    const imgElement = document.createElement('img');
+                    imgElement.src=eventReader.target.result;
+                    imgElement.className='item-image';
+                    itemsSection.appendChild(imgElement);
+                    console.log('asdas');
+                }
+                reader.readAsDataURL(file);
+            }
+        })
+    </script>
+</head>
+<body>
+    <main class="items-center justify-center align-center w-full h-full">
+        <header id="top-header" class="w-full justify-center items-center">
+            <div class="flex flex-row mx-auto  w-full md:w-[60%] justify-center gap-8 align-middle items-center bg-linear-to-br from-black to-bg-transparent rounded-xl my-2">
+                <img src="/img/book.png" alt="imagen de un libro" class="logo">
+                <p class="text-4xl font-bold">Book Tier Maker</p>
+            </div>
+        </header>
+        <div class="flex flex-col w-full justify-center align-middle items-center">
+            <div class="flex flex-col w-full md:w-[60%] gap-8 bg-linear-to-br from-black to-bg-transparent rounded-xl ">
+                <section class="tier">
+                    <div class="row p-2 justify-between">
+                        <div>
+                            <span contenteditable="true" class="text-3xl">📚 Libros de :</span>
+                        </div>
+                        <div>
+                            <span contenteditable="true" class="text-3xl">Titulo</span>
+                        </div>
+                        <div>
+                            <span contenteditable="true" class="text-3xl">📚</span>
+                        </div>
+                    </div>
+                    <div class="row flex-wrap">
+                        <aside class="label" style="--level: var(--color-s)">
+                            <span contenteditable="true">⭐⭐⭐⭐⭐</span>
+                        </aside>
+                    </div>
+                    <div class="row">
+                        <aside class="label" style="--level: var(--color-a)">
+                            <span contenteditable="true">⭐⭐⭐⭐</span>
+                        </aside>
+                    </div>
+                    <div class="row">
+                        <aside class="label" style="--level: var(--color-b)">
+                            <span contenteditable="true">⭐⭐⭐</span>
+                        </aside>
+                    </div>
+                    <div class="row">
+                        <aside class="label" style="--level: var(--color-c)">
+                            <span contenteditable="true">⭐⭐</span>
+                        </aside>
+                    </div>
+                    <div class="row">
+                        <aside class="label" style="--level: var(--color-d)">
+                            <span contenteditable="true">⭐</span>
+                        </aside>
+                    </div>
+                    <div class="row">
+                        <aside class="label" style="--level: var(--color-e)">
+                            <span contenteditable="true">Drop 🗑️</span>
+                        </aside>
+                    </div>
+                </section>
+            </div>
+            <footer class="flex flex-col w-full md:w-[60%] gap-8 justify-center align-center items-center bg-linear-to-br from-black to-bg-transparent rounded-xl my-2 p-4" id="selector">
+                <section id="selector-buttons gap-4">
+                    <div class="flex flex-row">
+                        <label class="cursor-pointer">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-new-section"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12l6 0" /><path d="M12 9l0 6" /><path d="M4 6v-1a1 1 0 0 1 1 -1h1m5 0h2m5 0h1a1 1 0 0 1 1 1v1m0 5v2m0 5v1a1 1 0 0 1 -1 1h-1m-5 0h-2m-5 0h-1a1 1 0 0 1 -1 -1v-1m0 -5v-2m0 -5" /></svg>
+                            <input id="image-input" type="file" hidden/>
+                        </label>
+                        <button>
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                        </button>
+                    </div>
+                </section>
+                <section id="selector-items">
+                        <img class="w-[80px] h-[120px] cursor-pointer" src="img/Tronodecristal.jpeg" alt="asd">
+                        <img class="w-[80px] h-[120px] cursor-pointer" src="img/Alasdeonix.jpg" alt="asd">
+                    
+                </section>
+            </footer>
+        </div>
+    </main>
+</body>
+</html>
