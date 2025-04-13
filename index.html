@@ -88,28 +88,85 @@
             cursor: grab;
         }
     </style>
+    <script src="https://unpkg.com/html-to-image"></script>
     <script type="module">
 
         const $ = el => document.querySelector(el);
-        const $$ = els => document.querySelectorAll(el);
+        const $$ = el => document.querySelectorAll(el);
 
         const imageInput = $('#image-input');
         const itemsSection = $('#selector-items');
+
+        function createItem(src){
+            const imgElement = document.createElement('img');
+            imgElement.draggable=true;
+            imgElement.src=src;
+            imgElement.className='item-image';
+            imgElement.addEventListener('dragstart',handleDragStart);
+            imgElement.addEventListener('dragend',handleDragEnd);
+
+            itemsSection.appendChild(imgElement);
+            return imgElement;
+        }
 
         imageInput.addEventListener('change',(event)=>{
             const [file]=event.target.files;
             if(file){
                 const reader = new FileReader();
                 reader.onload=(eventReader)=>{
-                    const imgElement = document.createElement('img');
-                    imgElement.src=eventReader.target.result;
-                    imgElement.className='item-image';
-                    itemsSection.appendChild(imgElement);
-                    console.log('asdas');
+                    createItem(eventReader.target.result);
                 }
                 reader.readAsDataURL(file);
             }
-        })
+        });
+
+        let draggedElement = null;
+        let sourceContainer = null;
+
+        const rows = $$('.tier .row');
+
+        rows.forEach(row => {
+            row.addEventListener('drop',handleDrop);
+            row.addEventListener('dragover',handleDragOver);
+            row.addEventListener('dragleave',handleDragLeave);
+        });
+        itemsSection.addEventListener('drop',handleDrop);
+        itemsSection.addEventListener('dragover',handleDragOver);
+        itemsSection.addEventListener('dragleave',handleDragLeave);
+
+        function handleDrop(event){
+            event.preventDefault();
+            const { currenTarget, dataTransfer } = event;
+
+            if (sourceContainer && draggedElement){
+                sourceContainer.removeChild(draggedElement);
+            }
+
+            if(draggedElement){
+                const src = dataTransfer.getData('text/plain',draggedElement.src);
+                let imgElement=createItem(src);
+                event.target.appendChild(imgElement);
+            }
+
+        };
+        function handleDragOver(event){
+            event.preventDefault();
+
+        };
+        function handleDragLeave(event){
+            event.preventDefault();
+        };
+
+        function handleDragStart(event){
+            console.log('drag start ', event.target);
+            draggedElement = event.target;
+            sourceContainer = draggedElement.parentNode;
+        }
+        function handleDragEnd(event){
+            console.log('drag end ', event.target);
+            draggedElement=null;
+            sourceContainer=null;
+        }
     </script>
 </head>
 <body>
@@ -121,7 +178,7 @@
             </div>
         </header>
         <div class="flex flex-col w-full justify-center align-middle items-center">
-            <div class="flex flex-col w-full md:w-[60%] gap-8 bg-linear-to-br from-black to-bg-transparent rounded-xl ">
+            <div id="contenedor" class="flex flex-col w-full md:w-[60%] gap-8 bg-linear-to-br from-black to-bg-transparent rounded-xl ">
                 <section class="tier">
                     <div class="row p-2 justify-between">
                         <div>
@@ -171,20 +228,35 @@
                     <div class="flex flex-row">
                         <label class="cursor-pointer">
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-new-section"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12l6 0" /><path d="M12 9l0 6" /><path d="M4 6v-1a1 1 0 0 1 1 -1h1m5 0h2m5 0h1a1 1 0 0 1 1 1v1m0 5v2m0 5v1a1 1 0 0 1 -1 1h-1m-5 0h-2m-5 0h-1a1 1 0 0 1 -1 -1v-1m0 -5v-2m0 -5" /></svg>
-                            <input id="image-input" type="file" hidden/>
+                            <input accept="image/*" id="image-input" type="file" hidden/>
                         </label>
                         <button>
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
                         </button>
+                        <button onclick="descargarImagen()">
+                            Guardar
+                        </button>
                     </div>
                 </section>
                 <section id="selector-items">
-                        <img class="w-[80px] h-[120px] cursor-pointer" src="img/Tronodecristal.jpeg" alt="asd">
-                        <img class="w-[80px] h-[120px] cursor-pointer" src="img/Alasdeonix.jpg" alt="asd">
-                    
                 </section>
             </footer>
         </div>
     </main>
+    <script>
+        function descargarImagen() {
+          const contenedor = document.getElementById('contenedor');
+          htmlToImage.toPng(contenedor)
+            .then(function (dataUrl) {
+              const link = document.createElement('a');
+              link.download = 'contenedor.png';
+              link.href = dataUrl;
+              link.click();
+            })
+            .catch(function (error) {
+              console.error('Error al generar la imagen:', error);
+            });
+        }
+      </script>
 </body>
 </html>
