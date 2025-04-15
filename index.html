@@ -53,12 +53,7 @@
             border: 1px;
             border-color: gray;
         }
-        .row{
-            display: flex;
-            flex-direction: row;
-            border-bottom: 1px solid #111;
-        }
-
+        
         #selector-items{
             border: 1px solid #666;
             padding: 20px;
@@ -69,6 +64,22 @@
             display: flex;
             gap : 5px;
             flex-wrap: wrap;
+
+            &.drag-files{
+                background-color: #555;
+                border-style: dashed;
+            }
+        }
+        .row{
+            display: flex;
+            flex-direction: row;
+            border-bottom: 1px solid #111;
+
+        }
+        .drag-over{
+            background-color: #555;
+            transition: all 0.3s ease;
+            scale:1.01;
         }
         #top-header{
             display: flex;
@@ -86,6 +97,11 @@
             height: 120px;
             object-fit: cover;
             cursor: grab;
+
+            &.drag-preview{
+                opacity: 0.5;
+                pointer-events: none;
+            }
         }
     </style>
     <script src="https://unpkg.com/html-to-image"></script>
@@ -96,7 +112,19 @@
 
         const imageInput = $('#image-input');
         const itemsSection = $('#selector-items');
+        const resetButton = $('#reset-tier-button');
 
+        function useFilesToCreateItems(files){
+            if(files && files.length>0){
+                Array.from(files).forEach(file=>{
+                    const reader = new FileReader();
+                    reader.onload=(eventReader)=>{
+                        createItem(eventReader.target.result);
+                    }
+                    reader.readAsDataURL(file);
+                })
+            }
+        }
         function createItem(src){
             const imgElement = document.createElement('img');
             imgElement.draggable=true;
@@ -110,14 +138,8 @@
         }
 
         imageInput.addEventListener('change',(event)=>{
-            const [file]=event.target.files;
-            if(file){
-                const reader = new FileReader();
-                reader.onload=(eventReader)=>{
-                    createItem(eventReader.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
+            const {files}=event.target;
+            useFilesToCreateItems(files);
         });
 
         let draggedElement = null;
@@ -130,43 +152,92 @@
             row.addEventListener('dragover',handleDragOver);
             row.addEventListener('dragleave',handleDragLeave);
         });
+
         itemsSection.addEventListener('drop',handleDrop);
         itemsSection.addEventListener('dragover',handleDragOver);
         itemsSection.addEventListener('dragleave',handleDragLeave);
 
+        itemsSection.addEventListener('drop',handleDropFromDesktop);
+        itemsSection.addEventListener('dragover',handleDragOverFromDesktop);
+
         function handleDrop(event){
             event.preventDefault();
             const { currenTarget, dataTransfer } = event;
-
-            if (sourceContainer && draggedElement){
-                sourceContainer.removeChild(draggedElement);
+            event.target.classList.remove('drag-over');
+            if (event.target.classList.contains('row')||event.target.classList.contains('imagenes')){
+                if (sourceContainer && draggedElement){
+                    sourceContainer.removeChild(draggedElement);
+                }
+                
+                if(draggedElement){
+                    const src = dataTransfer.getData('text/plain',draggedElement.src);
+                    let imgElement=createItem(src);
+                    event.target.appendChild(imgElement);
+                }
             }
-
-            if(draggedElement){
-                const src = dataTransfer.getData('text/plain',draggedElement.src);
-                let imgElement=createItem(src);
-                event.target.appendChild(imgElement);
+            const dragPreview = document.querySelector('.drag-preview');
+            if(dragPreview){
+                dragPreview.parentNode.removeChild(dragPreview);
             }
-
         };
         function handleDragOver(event){
             event.preventDefault();
+            const { currentTarget } = event;
+            if(sourceContainer === currentTarget) return;
+            currentTarget.classList.add('drag-over');
+            const dragPreview = document.querySelector('.drag-preview');
+            if(draggedElement && !dragPreview){
+                const previewElement = draggedElement.cloneNode(true);
+                previewElement.classList.add('drag-preview');
+                currentTarget.appendChild(previewElement);
 
+            }
         };
         function handleDragLeave(event){
             event.preventDefault();
+            const { currentTarget } = event;
+            currentTarget.classList.remove('drag-over');
+            currentTarget.classList.remove('drag-files');
+            if(sourceContainer === currentTarget) return;
+            const dragPreview = document.querySelector('.drag-preview');
+            if(dragPreview){
+                dragPreview.parentNode.removeChild(dragPreview);
+            }
         };
-
         function handleDragStart(event){
-            console.log('drag start ', event.target);
             draggedElement = event.target;
             sourceContainer = draggedElement.parentNode;
         }
         function handleDragEnd(event){
-            console.log('drag end ', event.target);
             draggedElement=null;
             sourceContainer=null;
         }
+
+        function handleDragOverFromDesktop(event){
+            event.preventDefault();
+            const {currentTarget, dataTransfer} = event;
+            if(dataTransfer.types.includes('Files')){
+                currentTarget.classList.add('drag-files');
+            }
+        }
+        function handleDropFromDesktop(event){
+            event.preventDefault();
+            const {currentTarget, dataTransfer} = event;
+
+            if(dataTransfer.types.includes('Files')){
+                currentTarget.classList.remove('drag-files');
+                const {files} = dataTransfer;
+                useFilesToCreateItems(files);
+            }
+        }
+
+        resetButton.addEventListener('click',()=>{
+            const items = $$('.tier .item-image');
+            items.forEach(item =>{
+                item.remove();
+                itemsSection.appendChild(item);
+            })
+        })
     </script>
 </head>
 <body>
@@ -225,20 +296,20 @@
             </div>
             <footer class="flex flex-col w-full md:w-[60%] gap-8 justify-center align-center items-center bg-linear-to-br from-black to-bg-transparent rounded-xl my-2 p-4" id="selector">
                 <section id="selector-buttons gap-4">
-                    <div class="flex flex-row">
+                    <div class="flex flex-row gap-8">
                         <label class="cursor-pointer">
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-new-section"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 12l6 0" /><path d="M12 9l0 6" /><path d="M4 6v-1a1 1 0 0 1 1 -1h1m5 0h2m5 0h1a1 1 0 0 1 1 1v1m0 5v2m0 5v1a1 1 0 0 1 -1 1h-1m-5 0h-2m-5 0h-1a1 1 0 0 1 -1 -1v-1m0 -5v-2m0 -5" /></svg>
-                            <input accept="image/*" id="image-input" type="file" hidden/>
+                            <input multiple accept="image/*" id="image-input" type="file" hidden/>
                         </label>
-                        <button>
+                        <button id="reset-tier-button">
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
                         </button>
                         <button onclick="descargarImagen()">
-                            Guardar
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="40"  height="40"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
                         </button>
                     </div>
                 </section>
-                <section id="selector-items">
+                <section id="selector-items" class="imagenes">
                 </section>
             </footer>
         </div>
